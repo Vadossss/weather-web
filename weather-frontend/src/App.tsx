@@ -34,6 +34,7 @@ import {
   Gauge,
   MousePointer2,
   Star,
+  StarIcon,
   Sun,
   Wind,
 } from "lucide-react";
@@ -48,7 +49,14 @@ import { useDebounce } from "react-use";
 import {
   FavoritesContext,
   FavoritesProvider,
-} from "./context/FavoritesContext";
+} from "./features/FavoritesContext";
+import { Provider, useDispatch, useSelector } from "react-redux";
+import { store, type RootState } from "./app/store";
+import {
+  addToFavorite,
+  removeFromFavorite,
+} from "./features/favorites/favoritesSlice";
+import { Footer } from "./components/project/Footer";
 
 const defaultIcon = L.icon({
   iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
@@ -306,11 +314,13 @@ function Map() {
   const [searchPlaceholder, setSearchPlaceholder] = useState(
     "Поиск адреса или места",
   );
+  const dispatch = useDispatch();
 
-  const 
+  const favorites = useSelector((state: RootState) => state.favorites.items);
 
-  const { favorites, toggleFavorites } =
-    useContext(FavoritesContext);
+  console.log("Favorites: " + favorites);
+
+  // const { favorites, toggleFavorites } = useContext(FavoritesContext);
 
   const handleLocateMe = useCallback(() => {
     navigator.geolocation.getCurrentPosition(
@@ -490,9 +500,11 @@ function Map() {
   const handleAddFavoriteAddress = (address: AddressResult | null) => {
     const ls = window.localStorage;
     let state = false;
-    console.log(ls.getItem("favorites"));
-    if (ls.getItem("favorites")) {
-      const favorites: AddressResult[] = JSON.parse(ls.getItem("favorites"));
+
+    const raw = ls.getItem("favorites");
+
+    if (raw) {
+      const favorites: AddressResult[] = JSON.parse(raw);
       if (address) {
         favorites.forEach((favorite) => {
           if (favorite.lat === address.lat && favorite.lon === address.lon) {
@@ -502,6 +514,7 @@ function Map() {
         });
         if (!state) {
           favorites.push(address);
+          dispatch(addToFavorite(address));
         }
       }
       ls.setItem("favorites", JSON.stringify(favorites));
@@ -512,8 +525,16 @@ function Map() {
 
   if (isLoading) {
     return (
-      <div className="flex h-screen justify-center items-center">
-        <Spinner />
+      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-sky-950 text-white flex items-center justify-center">
+        <div className="relative px-8 py-6 rounded-3xl bg-white/10 backdrop-blur-2xl border border-white/20 shadow-[0_24px_70px_rgba(15,23,42,0.85)]">
+          <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-white/10 via-white/5 to-white/0 opacity-80" />
+          <div className="relative z-10 flex flex-col items-center gap-3">
+            <Spinner />
+            <p className="text-sm text-slate-100/80">
+              Загружаем данные о погоде…
+            </p>
+          </div>
+        </div>
       </div>
     );
   }
@@ -521,14 +542,15 @@ function Map() {
   return (
     <div className="h-full flex flex-col">
       <Toaster />
-      <div className="flex flex-col gap-4">
-        <div className="">
-          <div className="flex w-2xl mx-auto justify-center gap-2 p-2 z-[1000] rounded-2xl items-center">
-            <div className="relative flex flex-1 gap-2 flex-col">
-              <div className="flex gap-2 mt-2">
+      <div className="flex flex-col gap-6">
+        <div className="p-2 ">
+          <div className="relative flex w-full max-w-3xl mx-auto justify-center gap-3 p-3 z-[1000] rounded-3xl bg-white/10 backdrop-blur-2xl border border-white/15 shadow-[0_20px_60px_rgba(15,23,42,0.85)]">
+            <div className="absolute inset-0 rounded-3xl bg-gradient-to-r from-white/15 via-white/5 to-white/10 opacity-80" />
+            <div className="relative z-10 flex flex-1 gap-2 flex-col">
+              <div className="flex gap-3">
                 <Button
                   onClick={() => handleAddFavoriteAddress(address)}
-                  className="bg-white/20 backdrop-blur-2xl rounded-3xl border border-gray-300 text-black items-center hover:bg-gray-200 ease-in-out"
+                  className="bg-white/20 backdrop-blur-xl rounded-2xl border border-white/30 text-slate-900 hover:bg-white/40 hover:text-slate-900 ease-in-out shadow-[0_14px_35px_rgba(15,23,42,0.55)]"
                 >
                   <Star />В избранное
                 </Button>
@@ -539,21 +561,66 @@ function Map() {
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder={searchPlaceholder}
-                  className=" px-3 py-2 border border-gray-300 focus:outline-none focus:ring-1 focus:ring-gray-500
-            bg-white rounded-2xl hover:bg-gray-100 ease-in-out delay-75 text-black"
+                  className="px-3 py-2 border border-white/30 focus:outline-none focus:ring-1 focus:ring-sky-400/60 bg-white rounded-2xl hover:bg-white/30 ease-in-out delay-75 text-slate-50 placeholder:text-slate-200/70 shadow-[0_12px_30px_rgba(15,23,42,0.6)]"
                 />
                 <Button
                   onClick={handleLocateMe}
-                  className="bg-white/20 backdrop-blur-2xl rounded-3xl border border-gray-300 text-black items-center hover:bg-gray-200 ease-in-out"
+                  className="bg-white/20 backdrop-blur-xl rounded-2xl border border-white/30 text-slate-900 items-center hover:bg-white/40 hover:text-slate-900 ease-in-out shadow-[0_14px_35px_rgba(15,23,42,0.55)]"
                 >
                   <MousePointer2 />
                   Найти меня
                 </Button>
               </div>
-              {(isSearchFocused && searchQueryResult.length > 0) ||
-                (favorites && (
-                  <div className="w-full absolute top-full left-0 mt-2 z-500 bg-white border p-4 rounded-xl">
-                    <ul className="">
+              {isSearchFocused &&
+                (searchQueryResult.length > 0 || favorites.length > 0) && (
+                  <div className="w-full absolute top-full left-0 mt-3 z-500">
+                    <ul className="bg-white/80 opacity-90 backdrop-blur-2xl border border-white/25 p-3 rounded-2xl shadow-[0_22px_55px_rgba(15,23,42,0.85)] space-y-1">
+                      {favorites.slice(0, 5).map((item, index) => (
+                        <li
+                          key={index}
+                          className="hover:bg-white/18 rounded-xl p-2 cursor-pointer text-slate-50 transition-colors"
+                        >
+                          <div className="flex justify-between items-center">
+                            <div
+                              onMouseDown={(e) => {
+                                e.preventDefault();
+                                setMarker([Number(item.lon), Number(item.lat)]);
+                                setMapCenter([
+                                  Number(item.lon),
+                                  Number(item.lat),
+                                ]);
+                                setSearchParams({
+                                  lat: String(Number(item.lat).toFixed(6)),
+                                  lon: String(Number(item.lon).toFixed(6)),
+                                });
+                                setSearchPlaceholder(
+                                  `${item.localityName}, ${item.administrativeAreaName}`,
+                                );
+                                setSearchQuery("");
+                                setIsSearchFocused(false);
+                              }}
+                              className="flex flex-1 flex-col"
+                            >
+                              <p className="text-sm font-medium">
+                                {item.localityName}
+                              </p>
+                              <p className="text-xs text-slate-200/80">
+                                {item.administrativeAreaName}
+                              </p>
+                            </div>
+                            <div className="pointer-events-auto">
+                              <StarIcon
+                                onMouseDown={(e) => {
+                                  e.preventDefault();
+                                  e.stopPropagation();
+                                  dispatch(removeFromFavorite(item));
+                                }}
+                                className="text-orange-300 fill-orange-300 hover:fill-slate-300 hover:text-slate-300"
+                              />
+                            </div>
+                          </div>
+                        </li>
+                      ))}
                       {searchQueryResult.map((res, index) => (
                         <li
                           key={index}
@@ -571,22 +638,27 @@ function Map() {
                             setSearchQuery("");
                             setIsSearchFocused(false);
                           }}
-                          className="rounded-xl hover:bg-gray-300 p-2 cursor-pointer text-black"
+                          className="rounded-xl hover:bg-white/18 p-2 cursor-pointer text-slate-50 transition-colors"
                         >
-                          <p>{res.localityName}</p>
-                          <p>{res.administrativeAreaName}</p>
+                          <p className="text-sm font-medium">
+                            {res.localityName}
+                          </p>
+                          <p className="text-xs text-slate-200/80">
+                            {res.administrativeAreaName}
+                          </p>
                         </li>
                       ))}
                     </ul>
                   </div>
-                ))}
+                )}
             </div>
           </div>
         </div>
-        <div className="flex gap-2 mx-auto h-full w-full">
+        <div className="flex gap-3 mx-auto h-full w-full">
           {weatherData && (
-            <div className="relative bg-[url(/img/Sunny.jpeg)] flex-1 rounded-xl overflow-hidden">
-              <div className="p-6">
+            <div className="relative bg-[url(/img/Sunny.jpeg)] bg-cover bg-center flex-1 rounded-3xl overflow-hidden shadow-[0_28px_80px_rgba(15,23,42,0.9)]">
+              <div className="absolute inset-0 bg-gradient-to-br from-slate-950/85 via-slate-900/50 to-sky-900/40" />
+              <div className="relative p-6">
                 {!address ? (
                   <div className="flex flex-col gap-1">
                     <Skeleton className="w-[160px] h-[40px]" />
@@ -594,39 +666,39 @@ function Map() {
                   </div>
                 ) : (
                   <div className="flex flex-col gap-1 mb-2">
-                    <p className="text-4xl font-semibold text-white line-clamp-1">
+                    <p className="text-4xl font-semibold text-white line-clamp-1 drop-shadow-[0_10px_32px_rgba(0,0,0,0.9)]">
                       {address?.localityName}
                     </p>
-                    <span className="text-xl text-gray-300 line-clamp-1">
+                    <span className="text-xl text-slate-200 line-clamp-1 drop-shadow-[0_8px_24px_rgba(0,0,0,0.85)]">
                       {address?.administrativeAreaName}
                     </span>
                   </div>
                 )}
 
-                <div className="flex justify-between items-center my-5">
-                  <div className="relative items-center gap-2 flex bg-white/20 backdrop-blur-lg rounded-3xl p-2 pt-0 border border-white/20">
-                    <div className="absolute inset-0 bg-black/20 rounded-3xl" />
+                <div className="flex justify-between items-center my-5 gap-4">
+                  <div className="relative items-center gap-2 flex bg-white/15 backdrop-blur-2xl rounded-3xl p-4 pt-3 border border-white/25 shadow-[0_26px_70px_rgba(15,23,42,0.95)]">
+                    <div className="absolute inset-0 bg-gradient-to-b from-white/20 via-white/5 to-transparent rounded-3xl" />
 
-                    <div className="relative z-10 flex flex-col gap-4 items-center text-white text-shadow-lg items-centerfont-semibold">
+                    <div className="relative z-10 flex flex-col gap-4 items-center text-white text-shadow-lg font-semibold">
                       <p className="font-semibold text-9xl text-white">
                         {Math.round(weatherData.current.temperature_2m)}°
                       </p>
                       <div className="text-white font-semibold">
                         <div className="flex gap-2 items-center">
-                          <div className="p-1 bg-white/30 backdrop-blur-lg rounded-xl border border-white/20 shadow">
+                          <div className="p-1 bg-white/30 backdrop-blur-lg rounded-xl border border-white/25 shadow-[0_16px_40px_rgba(15,23,42,0.85)]">
                             {
                               getWeatherType(weatherData.current.weather_code)
                                 .icon
                             }
                           </div>
                           <div className="flex flex-col w-[170px] text-sm">
-                            <p>
+                            <p className="text-slate-100">
                               {
                                 getWeatherType(weatherData.current.weather_code)
                                   .name
                               }
                             </p>
-                            <p>
+                            <p className="text-slate-200/90">
                               Ощущается как
                               {" " +
                                 Math.round(
@@ -640,7 +712,7 @@ function Map() {
                     </div>
                   </div>
                   <div className="h-full">
-                    <div className="grid grid-rows-2 grid-cols-2 gap-1 content-stretch">
+                    <div className="grid grid-rows-2 grid-cols-2 gap-2 content-stretch">
                       {func(weatherData.current).map((stat) => (
                         <LiquidCard value={stat.value} icon={stat.icon} />
                       ))}
@@ -658,10 +730,14 @@ function Map() {
             setMapCenter={setMapCenter}
           />
         </div>
-        <Slider weatherHourlyData={weatherData?.hourly} />
-        <TemperatureChart
-          dataHourly={getDayNightTempMAx(weatherData?.hourly)}
-        />
+        {weatherData?.hourly && (
+          <>
+            <Slider weatherHourlyData={weatherData.hourly} />
+            <TemperatureChart
+              dataHourly={getDayNightTempMAx(weatherData.hourly)}
+            />
+          </>
+        )}
       </div>
     </div>
   );
@@ -670,9 +746,10 @@ function Map() {
 export default function App() {
   return (
     <div className="w-7xl mx-auto">
-      <FavoritesProvider>
+      <Provider store={store}>
         <Map />
-      </FavoritesProvider>
+        <Footer />
+      </Provider>
     </div>
   );
 }
