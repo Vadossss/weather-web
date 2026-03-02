@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useRef } from "react";
 import { Swiper, SwiperSlide } from "swiper/react";
 
 import "swiper/css";
@@ -21,48 +21,9 @@ interface SliderProps {
   weatherHourlyData: WeatherHourly[];
 }
 
-function SliderPerViewValue() {
-  const width = window.innerWidth;
-  console.log(width);
-
-  if (width > 1024) {
-    return 13;
-  } else if (width < 1024 && width > 768) {
-    return 9;
-  } else if (width < 768 && width > 425) {
-    return 5;
-  } else if (width > 425) {
-    return 4;
-  } else {
-    return 13;
-  }
-}
-
 export const Slider: React.FC<SliderProps> = ({ weatherHourlyData }) => {
   const nextRef = useRef(null);
   const prevRef = useRef(null);
-  const [windowSize, setWindowSize] = useState({
-    width: window.innerWidth,
-    height: window.innerHeight,
-  });
-  const [perView, setPerView] = useState(13);
-
-  useEffect(() => {
-    const width = window.innerWidth;
-    console.log(width);
-
-    if (width > 1024) {
-      setPerView(13);
-    } else if (width < 1024 && width > 768) {
-      setPerView(9);
-    } else if (width < 768 && width > 425) {
-      setPerView(5);
-    } else if (width > 425) {
-      setPerView(4);
-    } else {
-      setPerView(13);
-    }
-  }, [window.outerWidth]);
 
   return (
     <div className="relative">
