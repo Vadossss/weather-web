@@ -1,13 +1,6 @@
-import {
-  useState,
-  useCallback,
-  useEffect,
-  type ReactNode,
-  useContext,
-} from "react";
+import { useState, useCallback, useEffect, type ReactNode } from "react";
 import "./App.css";
 import "leaflet/dist/leaflet.css";
-import { useMapEvents, useMap } from "react-leaflet";
 import type { LatLngExpression } from "leaflet";
 import L from "leaflet";
 import { Button } from "./components/ui/button";
@@ -46,10 +39,6 @@ import { useSearchParams } from "react-router-dom";
 import { Slider } from "./components/project/Slider";
 import { TemperatureChart } from "./components/project/TemperatureChart";
 import { useDebounce } from "react-use";
-import {
-  FavoritesContext,
-  FavoritesProvider,
-} from "./features/FavoritesContext";
 import { Provider, useDispatch, useSelector } from "react-redux";
 import { store, type RootState } from "./app/store";
 import {
@@ -71,7 +60,7 @@ const defaultIcon = L.icon({
 L.Marker.prototype.options.icon = defaultIcon;
 
 const DEFAULT_CENTER: LatLngExpression = [55.733842, 37.588144];
-const DEFAULT_ZOOM = 9;
+// const DEFAULT_ZOOM = 9;
 
 export interface AddressResult {
   lat: string;
@@ -83,6 +72,7 @@ export interface AddressResult {
 interface StateWeather {
   name: string;
   icon: ReactNode;
+  image: string;
 }
 
 export interface DayAgg {
@@ -105,103 +95,103 @@ const AreaIdentify = (azimuth: number) => {
   return "—";
 };
 
-function MapClickHandler({
-  onMapClick,
-}: {
-  onMapClick: (coords: [number, number]) => void;
-}) {
-  useMapEvents({
-    click(e) {
-      onMapClick([e.latlng.lat, e.latlng.lng]);
-    },
-  });
-  return null;
-}
-
-function SetViewOnCenter({ center }: { center: [number, number] }) {
-  const map = useMap();
-  useEffect(() => {
-    map.setView(center, map.getZoom());
-  }, [map, center]);
-  return null;
-}
+// function SetViewOnCenter({ center }: { center: [number, number] }) {
+//   const map = useMap();
+//   useEffect(() => {
+//     map.setView(center, map.getZoom());
+//   }, [map, center]);
+//   return null;
+// }
 
 export function getWeatherType(wmoCode: number): StateWeather {
   if (wmoCode === 0)
     return {
       name: "Солнечно",
       icon: <Sun className="size-10" />,
+      image: "/img/sunny.jpg",
     };
 
   if (wmoCode >= 1 && wmoCode <= 3)
     return {
       name: "Переменная облачность",
       icon: <CloudSun className="size-10" />,
+      image: "/img/cloud.jpg",
     };
 
   if (wmoCode >= 4 && wmoCode <= 8)
     return {
       name: "Облачно",
       icon: <Cloud className="size-10" />,
+      image: "/img/cloud.jpg",
     };
 
   if (wmoCode === 45 || wmoCode === 48)
     return {
       name: "Туман",
       icon: <CloudFog className="size-10" />,
+      image: "/img/fog.jpg",
     };
 
   if (wmoCode >= 51 && wmoCode <= 55)
     return {
       name: "Морось",
       icon: <CloudDrizzle className="size-10" />,
+      image: "/img/rain.jpg",
     };
 
   if (wmoCode >= 61 && wmoCode <= 65)
     return {
       name: "Дождь",
       icon: <CloudRain className="size-10" />,
+      image: "/img/rain.jpg",
     };
 
   if (wmoCode >= 66 && wmoCode <= 69)
     return {
       name: "Мокрый снег",
       icon: <CloudSnow className="size-10" />,
+      image: "/img/snow.jpg",
     };
 
   if (wmoCode >= 71 && wmoCode <= 75)
     return {
       name: "Снег",
       icon: <CloudSnow className="size-10" />,
+      image: "/img/snow.jpg",
     };
 
   if (wmoCode >= 80 && wmoCode <= 82)
     return {
       name: "Ливень",
       icon: <CloudRainWind className="size-10" />,
+      image: "/img/rain.jpg",
     };
 
   if (wmoCode >= 83 && wmoCode <= 84)
     return {
       name: "Мокрый снег",
       icon: <CloudSnow className="size-10" />,
+      image: "/img/snow.jpg",
     };
 
   if (wmoCode === 95)
     return {
       name: "Гроза",
       icon: <CloudLightning />,
+      image: "/img/thundershtorm.jpg",
     };
 
   if (wmoCode >= 96 && wmoCode <= 99)
     return {
       name: "Град",
-      icon: <CloudHail />,
+      icon: <CloudHail className="size-10" />,
+      image: "/img/thundershtorm.jpg",
     };
 
   return {
     name: "Что-то",
-    icon: <Cloud />,
+    icon: <Cloud className="size-10" />,
+    image: "/img/sunny.jpg",
   };
 }
 
@@ -225,10 +215,6 @@ const func = (weatherData: WeatherCurrent) => {
     },
   ];
 };
-
-interface FavoritesProps {
-  favorites: AddressResult[];
-}
 
 const getDayNightTempMAx = (hours: WeatherHourly[]): DayAgg[] => {
   console.log(hours);
@@ -304,8 +290,7 @@ function Map() {
   );
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [address, setAddress] = useState<AddressResult | null>(null);
-  const [searchError, setSearchError] = useState<string | null>(null);
-  const [isSearching, setIsSearching] = useState(false);
+  const [, setIsSearching] = useState(false);
   const [weatherData, setWeatherData] = useState<WeatherMessage | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [addressData, setAddressData] = useState<AddressResponse | null>(null);
@@ -319,8 +304,6 @@ function Map() {
   const favorites = useSelector((state: RootState) => state.favorites.items);
 
   console.log("Favorites: " + favorites);
-
-  // const { favorites, toggleFavorites } = useContext(FavoritesContext);
 
   const handleLocateMe = useCallback(() => {
     navigator.geolocation.getCurrentPosition(
@@ -361,7 +344,7 @@ function Map() {
 
       try {
         const res = await fetch(
-          `http://localhost:8000/api/v1/weather?latitude=${marker[0]}&longitude=${marker[1]}`,
+          `/api/v1/weather?latitude=${marker[0]}&longitude=${marker[1]}`,
         );
         const data = await res.json();
 
@@ -379,7 +362,6 @@ function Map() {
     async () => {
       if (!searchQuery.trim()) return;
       setIsSearching(true);
-      setSearchError(null);
       try {
         const res = await fetch(
           `https://geocode-maps.yandex.ru/v1/?apikey=${import.meta.env.VITE_YANDEX_API_KEY}&geocode=${encodeURIComponent(searchQuery)}&format=json&lang=ru`,
@@ -464,37 +446,43 @@ function Map() {
 
   useEffect(() => {
     if (addressData === null) return;
-    setSearchQueryResult([]);
-    const array: AddressResult[] = [];
-    addressData.featureMember.map((geo) => {
-      console.log(geo.GeoObject);
+    const array: AddressResult[] = addressData.featureMember
+      .map((geo) => {
+        const geoObject = geo.GeoObject;
+        const meta = geoObject.metaDataProperty.GeocoderMetaData;
 
-      if (geo.GeoObject.metaDataProperty.GeocoderMetaData.kind === "locality") {
-        const address: AddressResult = {
-          lat: geo.GeoObject.Point.pos.split(" ")[1],
-          lon: geo.GeoObject.Point.pos.split(" ")[0],
-          administrativeAreaName: geo.GeoObject.metaDataProperty
-            .GeocoderMetaData.AddressDetails.Country?.AdministrativeArea
-            ?.AdministrativeAreaName
-            ? geo.GeoObject.metaDataProperty.GeocoderMetaData.AddressDetails
-                .Country.AdministrativeArea.AdministrativeAreaName
-            : geo.GeoObject.metaDataProperty.GeocoderMetaData.AddressDetails
-                .Country.CountryName,
-          localityName: geo.GeoObject.metaDataProperty.GeocoderMetaData
-            .AddressDetails.Country?.AdministrativeArea?.SubAdministrativeArea
-            ?.Locality?.LocalityName
-            ? geo.GeoObject.metaDataProperty.GeocoderMetaData.AddressDetails
-                .Country.AdministrativeArea.SubAdministrativeArea.Locality
-                .LocalityName
-            : geo.GeoObject.metaDataProperty.GeocoderMetaData.AddressDetails
-                .Country.AddressLine,
-        };
+        const [lon, lat] = (geoObject.Point.pos ?? "").split(" ");
+        if (!lat || !lon) return null;
 
-        array.push(address);
-      }
-    });
-    setSearchQueryResult(array);
-    console.log(searchQueryResult);
+        const country = meta.AddressDetails?.Country;
+        const adminArea = country?.AdministrativeArea;
+
+        const administrativeAreaName =
+          geoObject.description ||
+          meta.Address?.formatted ||
+          adminArea?.AdministrativeAreaName ||
+          country?.CountryName ||
+          "";
+
+        const localityName =
+          geoObject.name ||
+          meta.Address?.Components?.find((c) => c.kind === "locality")?.name ||
+          meta.text ||
+          "";
+
+        return {
+          lat,
+          lon,
+          administrativeAreaName,
+          localityName,
+        } satisfies AddressResult;
+      })
+      .filter((x): x is AddressResult => x !== null);
+
+    const uniq = new globalThis.Map<string, AddressResult>();
+    for (const item of array) uniq.set(`${item.lat}|${item.lon}`, item);
+
+    setSearchQueryResult([...uniq.values()]);
   }, [addressData]);
 
   const handleAddFavoriteAddress = (address: AddressResult | null) => {
@@ -525,15 +513,9 @@ function Map() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-sky-950 text-white flex items-center justify-center">
-        <div className="relative px-8 py-6 rounded-3xl bg-white/10 backdrop-blur-2xl border border-white/20 shadow-[0_24px_70px_rgba(15,23,42,0.85)]">
-          <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-white/10 via-white/5 to-white/0 opacity-80" />
-          <div className="relative z-10 flex flex-col items-center gap-3">
-            <Spinner />
-            <p className="text-sm text-slate-100/80">
-              Загружаем данные о погоде…
-            </p>
-          </div>
+      <div className="min-h-screen text-white flex items-center justify-center">
+        <div className="relative z-10 flex flex-col items-center gap-3">
+          <Spinner />
         </div>
       </div>
     );
@@ -544,7 +526,7 @@ function Map() {
       <Toaster />
       <div className="flex flex-col gap-6">
         <div className="p-2 ">
-          <div className="relative flex w-full max-w-3xl mx-auto justify-center gap-3 p-3 z-[1000] rounded-3xl bg-white/10 backdrop-blur-2xl border border-white/15 shadow-[0_20px_60px_rgba(15,23,42,0.85)]">
+          <div className="relative flex w-full max-w-3xl mx-auto justify-center gap-3 p-3 z-[1000] rounded-3xl bg-white/10 backdrop-blur-2xl border border-white/15 shadow-lg">
             <div className="absolute inset-0 rounded-3xl bg-gradient-to-r from-white/15 via-white/5 to-white/10 opacity-80" />
             <div className="relative z-10 flex flex-1 gap-2 flex-col">
               <div className="flex gap-3">
@@ -554,15 +536,103 @@ function Map() {
                 >
                   <Star />В избранное
                 </Button>
-                <Input
-                  onFocus={() => setIsSearchFocused(true)}
-                  onBlur={() => setIsSearchFocused(false)}
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder={searchPlaceholder}
-                  className="px-3 py-2 border border-white/30 focus:outline-none focus:ring-1 focus:ring-sky-400/60 bg-white rounded-2xl hover:bg-white/30 ease-in-out delay-75 text-slate-50 placeholder:text-slate-200/70 shadow-[0_12px_30px_rgba(15,23,42,0.6)]"
-                />
+                <div className="relative flex-1">
+                  <Input
+                    onFocus={() => setIsSearchFocused(true)}
+                    onBlur={() => setIsSearchFocused(false)}
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder={searchPlaceholder}
+                    className="w-full px-3 py-2 border text-black border-white/30 focus:outline-none focus:ring-1 focus:ring-sky-400/60 bg-white rounded-2xl ease-in-out delay-75 placeholder:text-gray-500 shadow-[0_12px_30px_rgba(15,23,42,0.6)]"
+                  />
+                  {isSearchFocused &&
+                    (searchQueryResult.length > 0 || favorites.length > 0) && (
+                      <div className="absolute top-full left-0 mt-3 w-full z-500">
+                        <ul className="bg-white backdrop-blur-2xl border border-white/25 p-3 rounded-2xl shadow-[0_22px_55px_rgba(15,23,42,0.85)] space-y-1">
+                          {favorites.slice(0, 5).map((item, index) => (
+                            <li
+                              key={index}
+                              className="hover:bg-gray-200 rounded-xl p-2 cursor-pointer text-slate-50 transition-colors"
+                            >
+                              <div className="flex justify-between items-center">
+                                <div
+                                  onMouseDown={(e) => {
+                                    e.preventDefault();
+                                    setMarker([
+                                      Number(item.lon),
+                                      Number(item.lat),
+                                    ]);
+                                    setMapCenter([
+                                      Number(item.lon),
+                                      Number(item.lat),
+                                    ]);
+                                    setSearchParams({
+                                      lat: String(Number(item.lat).toFixed(6)),
+                                      lon: String(Number(item.lon).toFixed(6)),
+                                    });
+                                    setSearchPlaceholder(
+                                      `${item.localityName}, ${item.administrativeAreaName}`,
+                                    );
+                                    setSearchQuery("");
+                                    setIsSearchFocused(false);
+                                  }}
+                                  className="flex flex-1 flex-col"
+                                >
+                                  <p className="text-sm font-medium text-black">
+                                    {item.localityName}
+                                  </p>
+                                  <p className="text-xs text-gray-700">
+                                    {item.administrativeAreaName}
+                                  </p>
+                                </div>
+                                <div className="pointer-events-auto">
+                                  <StarIcon
+                                    onMouseDown={(e) => {
+                                      e.preventDefault();
+                                      e.stopPropagation();
+                                      dispatch(removeFromFavorite(item));
+                                    }}
+                                    className="text-orange-300 fill-orange-300 hover:fill-slate-300 hover:text-slate-300"
+                                  />
+                                </div>
+                              </div>
+                            </li>
+                          ))}
+                          {searchQueryResult.slice(0, 4).map((res, index) => (
+                            <li
+                              key={index}
+                              onMouseDown={(e) => {
+                                e.preventDefault();
+                                setMarker([Number(res.lat), Number(res.lon)]);
+                                setMapCenter([
+                                  Number(res.lat),
+                                  Number(res.lon),
+                                ]);
+                                setSearchParams({
+                                  lat: String(Number(res.lat).toFixed(6)),
+                                  lon: String(Number(res.lon).toFixed(6)),
+                                });
+                                setSearchPlaceholder(
+                                  `${res.localityName}, ${res.administrativeAreaName}`,
+                                );
+                                setSearchQuery("");
+                                setIsSearchFocused(false);
+                              }}
+                              className="hover:bg-gray-200 rounded-xl p-2 cursor-pointer text-slate-50 transition-colors"
+                            >
+                              <p className="text-sm font-medium text-black">
+                                {res.localityName}
+                              </p>
+                              <p className="text-xs text-gray-700">
+                                {res.administrativeAreaName}
+                              </p>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                </div>
                 <Button
                   onClick={handleLocateMe}
                   className="bg-white/20 backdrop-blur-xl rounded-2xl border border-white/30 text-slate-900 items-center hover:bg-white/40 hover:text-slate-900 ease-in-out shadow-[0_14px_35px_rgba(15,23,42,0.55)]"
@@ -571,110 +641,44 @@ function Map() {
                   Найти меня
                 </Button>
               </div>
-              {isSearchFocused &&
-                (searchQueryResult.length > 0 || favorites.length > 0) && (
-                  <div className="w-full absolute top-full left-0 mt-3 z-500">
-                    <ul className="bg-white/80 opacity-90 backdrop-blur-2xl border border-white/25 p-3 rounded-2xl shadow-[0_22px_55px_rgba(15,23,42,0.85)] space-y-1">
-                      {favorites.slice(0, 5).map((item, index) => (
-                        <li
-                          key={index}
-                          className="hover:bg-white/18 rounded-xl p-2 cursor-pointer text-slate-50 transition-colors"
-                        >
-                          <div className="flex justify-between items-center">
-                            <div
-                              onMouseDown={(e) => {
-                                e.preventDefault();
-                                setMarker([Number(item.lon), Number(item.lat)]);
-                                setMapCenter([
-                                  Number(item.lon),
-                                  Number(item.lat),
-                                ]);
-                                setSearchParams({
-                                  lat: String(Number(item.lat).toFixed(6)),
-                                  lon: String(Number(item.lon).toFixed(6)),
-                                });
-                                setSearchPlaceholder(
-                                  `${item.localityName}, ${item.administrativeAreaName}`,
-                                );
-                                setSearchQuery("");
-                                setIsSearchFocused(false);
-                              }}
-                              className="flex flex-1 flex-col"
-                            >
-                              <p className="text-sm font-medium">
-                                {item.localityName}
-                              </p>
-                              <p className="text-xs text-slate-200/80">
-                                {item.administrativeAreaName}
-                              </p>
-                            </div>
-                            <div className="pointer-events-auto">
-                              <StarIcon
-                                onMouseDown={(e) => {
-                                  e.preventDefault();
-                                  e.stopPropagation();
-                                  dispatch(removeFromFavorite(item));
-                                }}
-                                className="text-orange-300 fill-orange-300 hover:fill-slate-300 hover:text-slate-300"
-                              />
-                            </div>
-                          </div>
-                        </li>
-                      ))}
-                      {searchQueryResult.map((res, index) => (
-                        <li
-                          key={index}
-                          onMouseDown={(e) => {
-                            e.preventDefault();
-                            setMarker([Number(res.lat), Number(res.lon)]);
-                            setMapCenter([Number(res.lat), Number(res.lon)]);
-                            setSearchParams({
-                              lat: String(Number(res.lat).toFixed(6)),
-                              lon: String(Number(res.lon).toFixed(6)),
-                            });
-                            setSearchPlaceholder(
-                              `${res.localityName}, ${res.administrativeAreaName}`,
-                            );
-                            setSearchQuery("");
-                            setIsSearchFocused(false);
-                          }}
-                          className="rounded-xl hover:bg-white/18 p-2 cursor-pointer text-slate-50 transition-colors"
-                        >
-                          <p className="text-sm font-medium">
-                            {res.localityName}
-                          </p>
-                          <p className="text-xs text-slate-200/80">
-                            {res.administrativeAreaName}
-                          </p>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
             </div>
           </div>
         </div>
         <div className="flex gap-3 mx-auto h-full w-full">
           {weatherData && (
-            <div className="relative bg-[url(/img/Sunny.jpeg)] bg-cover bg-center flex-1 rounded-3xl overflow-hidden shadow-[0_28px_80px_rgba(15,23,42,0.9)]">
+            <div
+              style={{
+                backgroundImage: `url(${getWeatherType(weatherData.current.weather_code).image})`,
+              }}
+              className={`relative bg-cover bg-center flex-1 rounded-3xl overflow-hidden`}
+            >
               <div className="absolute inset-0 bg-gradient-to-br from-slate-950/85 via-slate-900/50 to-sky-900/40" />
               <div className="relative p-6">
-                {!address ? (
-                  <div className="flex flex-col gap-1">
-                    <Skeleton className="w-[160px] h-[40px]" />
-                    <Skeleton className="w-[160px] h-[28px]" />
+                <div className="flex justify-between">
+                  {!address ? (
+                    <div className="flex flex-col gap-1">
+                      <Skeleton className="w-[160px] h-[40px]" />
+                      <Skeleton className="w-[160px] h-[28px]" />
+                    </div>
+                  ) : (
+                    <div className="flex flex-col gap-1 mb-2">
+                      <p className="text-4xl font-semibold text-white line-clamp-1 drop-shadow-[0_10px_32px_rgba(0,0,0,0.9)]">
+                        {address?.localityName}
+                      </p>
+                      <span className="text-xl text-slate-200 line-clamp-1 drop-shadow-[0_8px_24px_rgba(0,0,0,0.85)]">
+                        {address?.administrativeAreaName}
+                      </span>
+                    </div>
+                  )}
+                  <div className="text-lg text-slate-100/80">
+                    {new Intl.DateTimeFormat("ru-RU", {
+                      weekday: "long",
+                      day: "numeric",
+                      month: "short",
+                      timeZone: "UTC",
+                    }).format(new Date())}
                   </div>
-                ) : (
-                  <div className="flex flex-col gap-1 mb-2">
-                    <p className="text-4xl font-semibold text-white line-clamp-1 drop-shadow-[0_10px_32px_rgba(0,0,0,0.9)]">
-                      {address?.localityName}
-                    </p>
-                    <span className="text-xl text-slate-200 line-clamp-1 drop-shadow-[0_8px_24px_rgba(0,0,0,0.85)]">
-                      {address?.administrativeAreaName}
-                    </span>
-                  </div>
-                )}
-
+                </div>
                 <div className="flex justify-between items-center my-5 gap-4">
                   <div className="relative items-center gap-2 flex bg-white/15 backdrop-blur-2xl rounded-3xl p-4 pt-3 border border-white/25 shadow-[0_26px_70px_rgba(15,23,42,0.95)]">
                     <div className="absolute inset-0 bg-gradient-to-b from-white/20 via-white/5 to-transparent rounded-3xl" />
@@ -691,7 +695,7 @@ function Map() {
                                 .icon
                             }
                           </div>
-                          <div className="flex flex-col w-[170px] text-sm">
+                          <div className="flex flex-col w-[180px] text-sm">
                             <p className="text-slate-100">
                               {
                                 getWeatherType(weatherData.current.weather_code)
