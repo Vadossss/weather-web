@@ -534,7 +534,8 @@ function Map() {
                   onClick={() => handleAddFavoriteAddress(address)}
                   className="bg-white/20 backdrop-blur-xl rounded-2xl border border-white/30 text-slate-900 hover:bg-white/40 hover:text-slate-900 ease-in-out shadow-[0_14px_35px_rgba(15,23,42,0.55)]"
                 >
-                  <Star />В избранное
+                  <Star />
+                  <span className="hidden md:inline">В избранное</span>
                 </Button>
                 <div className="relative flex-1">
                   <Input
@@ -638,13 +639,13 @@ function Map() {
                   className="bg-white/20 backdrop-blur-xl rounded-2xl border border-white/30 text-slate-900 items-center hover:bg-white/40 hover:text-slate-900 ease-in-out shadow-[0_14px_35px_rgba(15,23,42,0.55)]"
                 >
                   <MousePointer2 />
-                  Найти меня
+                  <span className="hidden md:inline">Найти меня</span>
                 </Button>
               </div>
             </div>
           </div>
         </div>
-        <div className="flex gap-3 mx-auto h-full w-full">
+        <div className="flex gap-3 mx-auto h-full w-full max-xl:flex-col">
           {weatherData && (
             <div
               style={{
@@ -662,15 +663,15 @@ function Map() {
                     </div>
                   ) : (
                     <div className="flex flex-col gap-1 mb-2">
-                      <p className="text-4xl font-semibold text-white line-clamp-1 drop-shadow-[0_10px_32px_rgba(0,0,0,0.9)]">
+                      <p className="xl:text-4xl lg:text-4xl md:text-2xl sm:text-lg text-xs font-semibold text-white line-clamp-1 drop-shadow-[0_10px_32px_rgba(0,0,0,0.9)]">
                         {address?.localityName}
                       </p>
-                      <span className="text-xl text-slate-200 line-clamp-1 drop-shadow-[0_8px_24px_rgba(0,0,0,0.85)]">
+                      <span className="xl:text-xl lg:text-xl md:text-lg text-xs text-slate-200 line-clamp-1 drop-shadow-[0_8px_24px_rgba(0,0,0,0.85)]">
                         {address?.administrativeAreaName}
                       </span>
                     </div>
                   )}
-                  <div className="text-lg text-slate-100/80">
+                  <div className="xl:text-lg lg:text-lg md:text-md text-xs text-slate-100/80">
                     {new Intl.DateTimeFormat("ru-RU", {
                       weekday: "long",
                       day: "numeric",
@@ -684,7 +685,7 @@ function Map() {
                     <div className="absolute inset-0 bg-gradient-to-b from-white/20 via-white/5 to-transparent rounded-3xl" />
 
                     <div className="relative z-10 flex flex-col gap-4 items-center text-white text-shadow-lg font-semibold">
-                      <p className="font-semibold text-9xl text-white">
+                      <p className="font-semibold xl:text-9xl lg:text-8xl md:text-7xl sm:text-7xl text-7xl text-white">
                         {Math.round(weatherData.current.temperature_2m)}°
                       </p>
                       <div className="text-white font-semibold">
@@ -695,7 +696,7 @@ function Map() {
                                 .icon
                             }
                           </div>
-                          <div className="flex flex-col w-[180px] text-sm">
+                          <div className="flex flex-col xl:text-sm lg:text-xs md:text-xs text-xs">
                             <p className="text-slate-100">
                               {
                                 getWeatherType(weatherData.current.weather_code)
@@ -716,7 +717,7 @@ function Map() {
                     </div>
                   </div>
                   <div className="h-full">
-                    <div className="grid grid-rows-2 grid-cols-2 gap-2 content-stretch">
+                    <div className="grid grid-rows-2 grid-cols-2 max-[375px]:grid-cols-1 gap-2 content-stretch">
                       {func(weatherData.current).map((stat) => (
                         <LiquidCard value={stat.value} icon={stat.icon} />
                       ))}
@@ -749,7 +750,10 @@ function Map() {
 
 export default function App() {
   return (
-    <div className="w-7xl mx-auto">
+    <div
+      className="xl:w-7xl 
+    lg:w-3xl md:w-xl sm:w-lg [425px]:px-5 mx-auto"
+    >
       <Provider store={store}>
         <Map />
         <Footer />

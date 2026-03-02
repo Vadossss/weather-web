@@ -63,6 +63,22 @@ export const MiniMap: React.FC<MiniMapProps> = ({
 }) => {
   const [, setSearchParams] = useSearchParams();
 
+  function ResizeHandler() {
+    const map = useMap();
+
+    useEffect(() => {
+      const handleResize = () => {
+        map.invalidateSize();
+      };
+
+      handleResize();
+      window.addEventListener("resize", handleResize);
+      return () => window.removeEventListener("resize", handleResize);
+    }, [map]);
+
+    return null;
+  }
+
   const handleMapClick = useCallback((coords: [number, number]) => {
     setMarker(coords);
     setSearchParams({
@@ -72,13 +88,14 @@ export const MiniMap: React.FC<MiniMapProps> = ({
   }, []);
 
   return (
-    <div className="flex-1 min-h-0 overflow-hidden rounded-xl">
+    <div className="w-full max-xl:h-96 xl:flex-1 xl:h-auto overflow-hidden rounded-xl">
       <MapContainer
         center={DEFAULT_CENTER}
         zoom={DEFAULT_ZOOM}
         className="h-full w-full"
         zoomControl={false}
       >
+        <ResizeHandler />
         <SetViewOnCenter center={mapCenter ? mapCenter : [0, 0]} />
         <ZoomControl position="bottomright" />
         <TileLayer
