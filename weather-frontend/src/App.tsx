@@ -308,7 +308,7 @@ function Map() {
           lon: String(lon.toFixed(6)),
         });
       },
-      (err) => {
+      () => {
         setMapCenter(DEFAULT_CENTER as [number, number]);
         setMarker(DEFAULT_CENTER as [number, number]);
         setSearchParams({
