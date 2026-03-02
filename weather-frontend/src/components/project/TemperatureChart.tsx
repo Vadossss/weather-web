@@ -6,7 +6,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   ChartContainer,
   ChartTooltip,
-  ChartTooltipContent,
   type ChartConfig,
 } from "@/components/ui/chart";
 import { getWeatherType, type DayAgg } from "@/App";
@@ -66,7 +65,7 @@ interface CustomTooltipProps {
   label?: string;
 }
 
-const CustomTooltip = ({ active, payload, label }: CustomTooltipProps) => {
+const CustomTooltip = ({ active, payload }: CustomTooltipProps) => {
   const isVisible = active && payload?.length;
   const dataPoint = payload?.[0]?.payload;
 
@@ -103,9 +102,11 @@ export const TemperatureChart: React.FC<TemperatureChartProps> = ({
   console.log(dataHourly);
 
   return (
-    <Card>
+    <Card className="bg-white/30">
       <CardHeader>
-        <CardTitle className="font-bold text-2xl">Прогноз на 7 дней</CardTitle>
+        <CardTitle className="font-bold text-white text-shadow-lg text-2xl">
+          Прогноз на 7 дней
+        </CardTitle>
       </CardHeader>
       <CardContent className="">
         <ChartContainer
@@ -118,6 +119,7 @@ export const TemperatureChart: React.FC<TemperatureChartProps> = ({
             margin={{
               left: 30,
               right: 30,
+              top: 10,
             }}
           >
             <CartesianGrid vertical={false} />
