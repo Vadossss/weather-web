@@ -1,13 +1,8 @@
-import json
-
 import httpx
-import openmeteo_requests
 
 import pandas as pd
-import requests_cache
-from retry_requests import retry
 
-from models.coordinate_params import CoordinateParams
+from app.models.coordinate_params import CoordinateParams
 
 async def get_weather_data(coordinates: CoordinateParams):
 
@@ -48,7 +43,7 @@ async def get_weather_data(coordinates: CoordinateParams):
         "timezone": "auto",
     }
 
-    async with httpx.AsyncClient(timeout=5.0) as client:
+    async with httpx.AsyncClient(timeout=10.0) as client:
         response = await client.get(url, params=params)
         response.raise_for_status()
         data = response.json()

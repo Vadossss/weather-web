@@ -1,9 +1,7 @@
-import asyncio
 from typing import Annotated
 from fastapi import Query, APIRouter
-from models.coordinate_params import CoordinateParams
-from services.weather_service import get_weather_data
-import httpx
+from app.models.coordinate_params import CoordinateParams
+from app.services.weather_service import get_weather_data
 
 router = APIRouter()
 
