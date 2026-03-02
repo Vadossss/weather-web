@@ -1,5 +1,3 @@
-"use client";
-
 import "leaflet/dist/leaflet.css";
 import {
   MapContainer,
@@ -12,7 +10,7 @@ import {
 } from "react-leaflet";
 import type { LatLngExpression } from "leaflet";
 import L from "leaflet";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 
 const defaultIcon = L.icon({
@@ -29,12 +27,6 @@ L.Marker.prototype.options.icon = defaultIcon;
 
 const DEFAULT_CENTER: LatLngExpression = [55.733842, 37.588144];
 const DEFAULT_ZOOM = 9;
-
-interface NominatimResult {
-  lat: string;
-  lon: string;
-  display_name: string;
-}
 
 function MapClickHandler({
   onMapClick,
@@ -57,35 +49,19 @@ function SetViewOnCenter({ center }: { center: [number, number] }) {
   return null;
 }
 
-export const MiniMap = ({ marker, setMarker, mapCenter, setMapCenter }) => {
-  const [searchQuery, setSearchQuery] = useState("");
-  const [searchError, setSearchError] = useState<string | null>(null);
-  const [isSearching, setIsSearching] = useState(false);
-  const [searchParams, setSearchParams] = useSearchParams();
+interface MiniMapProps {
+  marker: [number, number] | null;
+  setMarker: (coords: [number, number] | null) => void;
+  mapCenter: [number, number] | null;
+  setMapCenter: (coords: [number, number] | null) => void;
+}
 
-  const handleSearch = useCallback(async () => {
-    if (!searchQuery.trim()) return;
-    setIsSearching(true);
-    setSearchError(null);
-    try {
-      const res = await fetch(
-        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(searchQuery)}&limit=1`,
-        { headers: { "Accept-Language": "ru" } },
-      );
-      const data: NominatimResult[] = await res.json();
-      if (data.length > 0) {
-        const [lat, lon] = [parseFloat(data[0].lat), parseFloat(data[0].lon)];
-        setMapCenter([lat, lon]);
-        setMarker([lat, lon]);
-      } else {
-        setSearchError("Ничего не найдено");
-      }
-    } catch {
-      setSearchError("Ошибка поиска");
-    } finally {
-      setIsSearching(false);
-    }
-  }, [searchQuery]);
+export const MiniMap: React.FC<MiniMapProps> = ({
+  marker,
+  setMarker,
+  mapCenter,
+}) => {
+  const [, setSearchParams] = useSearchParams();
 
   const handleMapClick = useCallback((coords: [number, number]) => {
     setMarker(coords);
@@ -103,7 +79,7 @@ export const MiniMap = ({ marker, setMarker, mapCenter, setMapCenter }) => {
         className="h-full w-full"
         zoomControl={false}
       >
-        <SetViewOnCenter center={mapCenter} />
+        <SetViewOnCenter center={mapCenter ? mapCenter : [0, 0]} />
         <ZoomControl position="bottomright" />
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
