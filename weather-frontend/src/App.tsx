@@ -95,14 +95,6 @@ const AreaIdentify = (azimuth: number) => {
   return "—";
 };
 
-// function SetViewOnCenter({ center }: { center: [number, number] }) {
-//   const map = useMap();
-//   useEffect(() => {
-//     map.setView(center, map.getZoom());
-//   }, [map, center]);
-//   return null;
-// }
-
 export function getWeatherType(wmoCode: number): StateWeather {
   if (wmoCode === 0)
     return {
@@ -316,7 +308,14 @@ function Map() {
           lon: String(lon.toFixed(6)),
         });
       },
-      (err) => console.warn("Геолокация:", err.message),
+      (err) => {
+        setMapCenter(DEFAULT_CENTER as [number, number]);
+        setMarker(DEFAULT_CENTER as [number, number]);
+        setSearchParams({
+          lat: String((DEFAULT_CENTER as [number, number])[0]),
+          lon: String((DEFAULT_CENTER as [number, number])[1]),
+        });
+      },
       { enableHighAccuracy: true, timeout: 10000 },
     );
   }, [setMapCenter, setMarker, setSearchParams]);
