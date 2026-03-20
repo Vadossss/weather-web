@@ -1,7 +1,7 @@
 # Weather Web Application
 
 [![Python](https://img.shields.io/badge/Python-3.11-blue)](https://www.python.org/)  
-[![FastAPI](https://img.shields.io/badge/FastAPI-0.95-green)](https://fastapi.tiangolo.com/)  
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.128-green)](https://fastapi.tiangolo.com/)  
 [![React](https://img.shields.io/badge/React-18-green?logo=react)](https://react.dev/)  
 [![Docker](https://img.shields.io/badge/Docker-24.0-blue?logo=docker)](https://www.docker.com/)  
 
