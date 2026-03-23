@@ -24,7 +24,7 @@
 
 1. Клонируем репозиторий:
 ```bash
-git clone https://github.com/yourusername/weather-app.git
+git clone https://github.com/Vadossss/weather-web.git
 cd weather-app
 ```
 2. Настройка переменных окружения:
